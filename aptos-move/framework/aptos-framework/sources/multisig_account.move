@@ -126,6 +126,7 @@ module aptos_framework::multisig_account {
 
     /// Contains information about execution failure.
     struct ExecutionError has copy, drop, store {
+        // The module where the error occurs.
         abort_location: String,
         // There are 3 error types, stored as strings:
         // 1. VMError. Indicates an error from the VM, e.g. out of gas, invalid auth key, etc.
@@ -133,6 +134,7 @@ module aptos_framework::multisig_account {
         // 3. MoveExecutionFailure. Indicates an error from Move code where the VM could not continue. For example,
         // arithmetic failures.
         error_type: String,
+        // The detailed error code explaining which error occurred.
         error_code: u64,
     }
 
