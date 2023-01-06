@@ -51,6 +51,7 @@ use tokio::{runtime::Handle, task::JoinHandle, time};
 // Max is 100k TPS for a full day.
 const MAX_TXNS: u64 = 100_000_000_000;
 const SEND_AMOUNT: u64 = 1;
+const MINT_GAS_FEE_MULTIPLIER: u64 = 10;
 
 // This retry policy is used for important client calls necessary for setting
 // up the test (e.g. account creation) and collecting its results (e.g. checking
@@ -122,9 +123,13 @@ pub struct EmitJobRequest {
     max_account_working_set: usize,
 
     txn_expiration_time_secs: u64,
+    max_transactions_per_account: usize,
+
     expected_max_txns: u64,
     expected_gas_per_txn: u64,
     prompt_before_spending: bool,
+
+    delay_after_minting: Duration,
 }
 
 impl Default for EmitJobRequest {
@@ -142,9 +147,11 @@ impl Default for EmitJobRequest {
             add_created_accounts_to_pool: true,
             max_account_working_set: 1_000_000,
             txn_expiration_time_secs: 60,
+            max_transactions_per_account: 20,
             expected_max_txns: MAX_TXNS,
             expected_gas_per_txn: aptos_global_constants::MAX_GAS_AMOUNT,
             prompt_before_spending: false,
+            delay_after_minting: Duration::from_secs(0),
         }
     }
 }
@@ -219,6 +226,16 @@ impl EmitJobRequest {
         self
     }
 
+    pub fn max_transactions_per_account(mut self, max_transactions_per_account: usize) -> Self {
+        self.max_transactions_per_account = max_transactions_per_account;
+        self
+    }
+
+    pub fn delay_after_minting(mut self, delay_after_minting: Duration) -> Self {
+        self.delay_after_minting = delay_after_minting;
+        self
+    }
+
     pub fn calculate_mode_params(&self) -> EmitModeParams {
         let clients_count = self.rest_clients.len();
 
@@ -227,7 +244,7 @@ impl EmitJobRequest {
                 // The target mempool backlog is set to be 3x of the target TPS because of the on an average,
                 // we can ~3 blocks in consensus queue. As long as we have 3x the target TPS as backlog,
                 // it should be enough to produce the target TPS.
-                let transactions_per_account = 20;
+                let transactions_per_account = self.max_transactions_per_account;
                 let num_workers_per_endpoint = max(
                     mempool_backlog / (clients_count * transactions_per_account),
                     1,
@@ -277,7 +294,7 @@ impl EmitJobRequest {
                 // In case we set a very low TPS, we need to still be able to spread out
                 // transactions, at least to the seconds granularity, so we reduce transactions_per_account
                 // if needed.
-                let transactions_per_account = min(20, tps);
+                let transactions_per_account = min(self.max_transactions_per_account, tps);
                 assert!(
                     transactions_per_account > 0,
                     "TPS ({}) needs to be larger than 0",
@@ -414,8 +431,20 @@ impl TxnEmitter {
             .with_transaction_expiration_time(mode_params.txn_expiration_time_secs)
             .with_gas_unit_price(req.gas_price);
 
-        let mut account_minter =
-            AccountMinter::new(root_account, txn_factory.clone(), self.rng.clone());
+        let mut account_minter = AccountMinter::new(
+            root_account,
+            txn_factory
+                .clone()
+                .with_gas_unit_price(req.gas_price * MINT_GAS_FEE_MULTIPLIER),
+            self.rng.clone(),
+        );
+        if !req.delay_after_minting.is_zero() {
+            info!(
+                "Sleeping after minting for {}s",
+                req.delay_after_minting.as_secs()
+            );
+            tokio::time::sleep(req.delay_after_minting).await;
+        }
         let mut new_accounts = account_minter
             .create_accounts(&req, &mode_params, num_accounts)
             .await?;

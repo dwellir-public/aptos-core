@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    emitter::{wait_for_single_account_sequence, RETRY_POLICY, SEND_AMOUNT},
+    emitter::{
+        wait_for_single_account_sequence, MINT_GAS_FEE_MULTIPLIER, RETRY_POLICY, SEND_AMOUNT,
+    },
     query_sequence_number, EmitJobRequest, EmitModeParams,
 };
 use anyhow::{anyhow, format_err, Context, Result};
@@ -86,12 +88,16 @@ impl<'t> AccountMinter<'t> {
         let coins_per_seed_account = (expected_children_per_seed_account as u64)
             .checked_mul(coins_per_account + req.expected_gas_per_txn)
             .unwrap()
-            .checked_add(aptos_global_constants::MAX_GAS_AMOUNT * req.gas_price)
+            .checked_add(
+                aptos_global_constants::MAX_GAS_AMOUNT * req.gas_price * MINT_GAS_FEE_MULTIPLIER,
+            )
             .unwrap();
         let coins_for_source = coins_per_seed_account
             .checked_mul(expected_num_seed_accounts as u64)
             .unwrap()
-            .checked_add(aptos_global_constants::MAX_GAS_AMOUNT * req.gas_price)
+            .checked_add(
+                aptos_global_constants::MAX_GAS_AMOUNT * req.gas_price * MINT_GAS_FEE_MULTIPLIER,
+            )
             .unwrap();
         info!(
             "Account creation plan created for {} accounts with {} balance each.",
@@ -279,15 +285,34 @@ impl<'t> AccountMinter<'t> {
                     )
                 })
                 .collect();
-            execute_and_wait_transactions(
+            let result = execute_and_wait_transactions(
                 &client,
                 source_account,
                 create_requests,
                 failed_requests,
             )
-            .await?;
-            i += batch_size;
-            seed_accounts.append(&mut batch);
+            .await;
+
+            if let Err(err) = result {
+                warn!("Creating seed accounts batch failed {:?}, retrying", err);
+                loop {
+                    let result = client.get_account(source_account.address()).await;
+                    if let Ok(response) = result {
+                        let account = response.into_inner();
+                        *source_account.sequence_number_mut() = account.sequence_number;
+                        break;
+                    } else {
+                        warn!(
+                            "Fetching sequence number failed {:?}, retrying",
+                            result.unwrap_err()
+                        );
+                        tokio::time::sleep(Duration::from_secs_f32(0.1)).await;
+                    }
+                }
+            } else {
+                i += batch_size;
+                seed_accounts.append(&mut batch);
+            };
         }
 
         Ok(seed_accounts)
@@ -384,15 +409,35 @@ where
                     )
                 })
                 .collect();
-            execute_and_wait_transactions(
+            let result = execute_and_wait_transactions(
                 &client,
                 &mut source_account,
                 creation_requests,
                 failed_requests,
             )
             .await
-            .with_context(|| format!("Account {} couldn't mint", source_account.address()))?;
-            batch
+            .with_context(|| format!("Account {} couldn't mint", source_account.address()));
+
+            if let Err(err) = result {
+                warn!("Creating seed accounts batch failed {:?}, retrying", err);
+                loop {
+                    let result = client.get_account(source_account.address()).await;
+                    if let Ok(response) = result {
+                        let account = response.into_inner();
+                        *source_account.sequence_number_mut() = account.sequence_number;
+                        break;
+                    } else {
+                        warn!(
+                            "Fetching sequence number failed {:?}, retrying",
+                            result.unwrap_err()
+                        );
+                        tokio::time::sleep(Duration::from_secs_f32(0.1)).await;
+                    }
+                }
+                Vec::new()
+            } else {
+                batch
+            }
         };
 
         i += batch.len();
