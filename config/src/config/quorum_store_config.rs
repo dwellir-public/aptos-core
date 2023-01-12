@@ -38,7 +38,7 @@ pub struct QuorumStoreConfig {
 impl Default for QuorumStoreConfig {
     fn default() -> QuorumStoreConfig {
         QuorumStoreConfig {
-            channel_size: 100,
+            channel_size: 1000,
             proof_timeout_ms: 10000,
             batch_request_num_peers: 2,
             mempool_pulling_interval: 100,
