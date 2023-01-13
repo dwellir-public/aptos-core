@@ -909,6 +909,7 @@ dependencies = [
 name = "aptos-executor-benchmark"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "aptos-config",
  "aptos-crypto",
  "aptos-db",
@@ -927,11 +928,13 @@ dependencies = [
  "aptos-temppath",
  "aptos-types",
  "aptos-vm",
+ "byteorder",
  "chrono",
  "criterion",
  "indicatif",
  "itertools",
  "jemallocator",
+ "move-core-types",
  "num_cpus",
  "rand 0.7.3",
  "rayon",

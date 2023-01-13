@@ -194,6 +194,7 @@ impl TStateView for CachedStateView {
     }
 
     fn get_state_value(&self, state_key: &StateKey) -> Result<Option<Vec<u8>>> {
+        println!("{:?}", state_key);
         // First check if the cache has the state value.
         if let Some(contents) = self.state_cache.read().get(state_key) {
             // This can return None, which means the value has been deleted from the DB.

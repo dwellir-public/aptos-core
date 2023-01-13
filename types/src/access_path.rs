@@ -52,7 +52,7 @@ pub struct AccessPath {
     pub path: Vec<u8>,
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize, Ord, PartialOrd)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum Path {
     Code(ModuleId),
     Resource(StructTag),
@@ -114,9 +114,9 @@ impl fmt::Debug for AccessPath {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "AccessPath {{ address: {:x}, path: {} }}",
+            "AccessPath {{ address: {:x}, path: {:?} }}",
             self.address,
-            hex::encode(&self.path)
+            self.get_path() //hex::encode(&self.path)
         )
     }
 }
