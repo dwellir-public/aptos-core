@@ -7,9 +7,65 @@ slug: "whats-new-in-docs"
 
 This page shows the key updates to the developer documentation on this site.
 
-## 15 December 2022
+## 15 January 2023
 
 - Added [Mint NFT with Aptos CLI](guides/move-guides/mint-nft-cli.md) Move guide describing the updated [NFT Tutorial](https://github.com/aptos-labs/nft-tutorial/tree/main/tutorial) and [`minting.move`](https://github.com/aptos-labs/nft-tutorial/blob/main/sources/minting.move).
+
+## 12 January 2023
+
+- Added [Homebrew](https://github.com/aptos-labs/aptos-core/blob/main/crates/aptos/homebrew/README.md) support for the Aptos CLI, enabling [easy installation](cli-tools/aptos-cli-tool/index.md) via the macOS, Linux, and Windows Subsystem for Linux (WSL) package manager.
+
+## 11 January 2023
+
+- Greatly expanded the [First Dapp tutorial](tutorials/first-dapp.md) to include a section on publishing the Move module using the TypeScript SDK, adds labels to output, improve the initialization for Petra wallet and the Aptos CLI, and more.
+
+- Noted in the [Aptos Token Standard](concepts/coin-and-token/aptos-token.md) that limits exist to storing customized token properties on-chain, namely 1000 properties per token with field names limited to 128 characters.
+
+- Added examples for requesting staking commission to [Staking Pool Operations](nodes/validator-node/operator/staking-pool-operations.md).
+
+## 10 January 2023
+
+- Explained in Validator cloud setup docs ([AWS](nodes/validator-node/operator/running-validator-node/using-aws.md), [Azure](nodes/validator-node/operator/running-validator-node/using-azure.md) and [GCP](nodes/validator-node/operator/running-validator-node/using-gcp.md)) how to check for and remove remaining Kubernetes volumes after changing the `era` to reset a deployment's state.
+
+- Expanded support for other networks in [Start Public Fullnode with Aptos Source or Docker](nodes/full-node/fullnode-source-code-or-docker.md) by adding files and instructions for fullnodes in `devnet` and `testnet`, as well as the default `mainnet`.
+
+- Enhanced [Run a Public Fullnode on GCP](nodes/full-node/run-a-fullnode-on-gcp.md) with details on fixing Terraform version mismatches, a link to the Docker image, and example output from `kubectl` commands.
+
+- Added a [Node types](concepts/node-networks-sync.md#node-types) section to Node Networks and Synchronization describing the various forms of nodes supported by Aptos: validator nodes, public fullnodes, validator fullnodes, and archival nodes.
+
+## 06 January 2023
+
+- Added an *Authors* list to the bottom of every page on Aptos.dev giving credit to all contributors to the document, both within Aptos Labs and externally.
+
+## 30 December 2022
+
+- Added [Node Inspection Service](nodes/measure/node-inspection-service.md) document that explains how to access node metrics for validators and fullnodes and highlights key metrics for monitoring.
+
+- Added instructions for [running archival nodes](guides/state-sync.md#running-archival-nodes), specifically avoiding fast syncing and ledger pruning. 
+
+## 29 December 2022
+
+- Improved [Update Aptos Validator Node](nodes/validator-node/operator/update-validator-node.md) with a section on securely running multiple validator fullnodes (VFNs) plus links to [Bootstrap Fullnode from Snapshot](nodes/full-node/bootstrap-fullnode.md) and [state synchronization](guides/state-sync.md).
+
+## 26 December 2022
+
+- Restored and refined [Bootstrap Fullnode from Snapshot](nodes/full-node/bootstrap-fullnode.md) to simplify and expedite Aptos fullnode starts in devnet and testnet environments.
+
+## 23 December 2022
+
+- Added instructions for [manually installing build dependencies on Windows](guides/getting-started.md#set-up-build-dependencies).
+
+## 20 December 2022
+
+- Added [Formal Verification, the Move Language, and the Move Prover](https://www.certik.com/resources/blog/2wSOZ3mC55AB6CYol6Q2rP-formal-verification-the-move-language-and-the-move-prover) blog post from the community to the [Supporting Move resources](guides/move-guides/index.md#supporting-move-resources) list.
+
+## 14 December 2022
+
+- Noted you may employ the [Aptos Name Service](https://www.aptosnames.com/) to secure .apt domains for key [accounts](concepts/accounts.md).
+
+## 12 December 2022
+
+- Released [Node Health Checker](nodes/measure/node-health-checker.md) web interface for evaluating fullnodes at: https://nodetools.aptosfoundation.org/#/node_checker
 
 ## 11 December 2022
 
@@ -21,11 +77,11 @@ This page shows the key updates to the developer documentation on this site.
 
 ## 08 December 2022
 
-- Released a new version to Mainnet:
+- Released [aptos-node-v1.1.0](https://github.com/aptos-labs/aptos-core/releases/tag/aptos-node-v1.1.0) to Mainnet:
 
   Framework upgrade through governance voting:
   - Testnet upgrade - Nov 30th
-  - Mainnet upgrade - Dec 12th - 19th (7 days voting period)
+  - Mainnet upgrade - Dec 12th - 19th (7 days voting period) required by fullnode operators
 
   New features and enhancements:
   - Move
