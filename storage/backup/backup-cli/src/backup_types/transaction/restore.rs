@@ -103,6 +103,7 @@ impl LoadedChunk {
         while let Some(record_bytes) = file.read_record_bytes().await? {
             let (txn, txn_info, events, write_set): (_, _, _, WriteSet) =
                 bcs::from_bytes(&record_bytes)?;
+            println!("{:?}", txn_info);
             txns.push(txn);
             txn_infos.push(txn_info);
             event_vecs.push(events);
